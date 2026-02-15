@@ -65,13 +65,13 @@ MACRO(makeLink src dest target)
 ENDMACRO()
 
 file(GLOB SOURCE
-        "src/*.h"
-        "src/*.cpp"
+        "src/**/*.h"
+        "src/**/*.cpp"
 )
 add_executable(${PROJECT_NAME} ${COMMON} ${SOURCE})
 target_link_libraries(${PROJECT_NAME} ${LIBS})
 IF(MSVC)
-rget_compile_options(${PROJECT_NAME} PRIVATE /std:c++20 /MP)
+    target_compile_options(${PROJECT_NAME} PRIVATE /std:c++20 /MP)
     target_link_options(${PROJECT_NAME} PUBLIC /ignore:4099)
 ENDIF(MSVC)
 IF(WIN32)
@@ -93,13 +93,13 @@ file(GLOB SHADERS
         "resources/shaders/*.gs"
         "resources/shaders/*.cs"
 )
-opy dlls
-e(GLOB DLLS "dlls/*.dll")
+# copy dlls
+file(GLOB DLLS "dlls/*.dll")
 FOREACH(SHADER ${SHADERS})
     IF(WIN32)
         # configure_file(${SHADER} "test")
         add_custom_command(TARGET ${PROJECT_NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${SHADER} $<TARGET_FILE_DIR:${PROJECT_NAME}>)
-dd_custom_command(TARGET ${PROJECT_NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${DLLS} $<TARGET_FILE_DIR:${PROJECT_NAME}>)
+        add_custom_command(TARGET ${PROJECT_NAME} PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different ${DLLS} $<TARGET_FILE_DIR:${PROJECT_NAME}>)
     ELSEIF(UNIX AND NOT APPLE)
         file(COPY ${SHADER} DESTINATION ${CMAKE_SOURCE_DIR}/bin/)
     ELSEIF(APPLE)
@@ -112,7 +112,6 @@ ENDFOREACH(SHADER)
 IF(MSVC)
     configure_file(${CMAKE_SOURCE_DIR}/configuration/visualstudio.vcxproj.user.in ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.vcxproj.user @ONLY)
 ENDIF(MSVC)
-
 
 include_directories(${CMAKE_SOURCE_DIR}/includes)
 include_directories(${CMAKE_SOURCE_DIR}/src)
