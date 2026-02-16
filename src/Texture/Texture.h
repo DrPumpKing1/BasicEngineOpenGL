@@ -4,6 +4,8 @@
 #include <stb/stb_image.h>
 
 #include "../Shader/ShaderProgram.h"
+#include "../System/FileSystem.h"
+
 #include <string>
 
 enum class TextureType {
@@ -22,7 +24,7 @@ private:
     std::string path;
     GLenum unit;
 public:
-    Texture(const char *path, TextureType type, GLenum unit, bool transparency = false)
+    Texture(const char *path, TextureType type, GLenum unit, bool transparency = false);
     ~Texture();
 
     void Bind() const;

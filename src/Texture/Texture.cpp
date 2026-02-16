@@ -4,7 +4,8 @@ Texture::Texture(const char *path, TextureType type, GLenum unit, bool transpare
 {
     int widthImg, heightImg, numColCh;
     stbi_set_flip_vertically_on_load(true);
-    unsigned char *bytes = stbi_load(path, &widthImg, &heightImg, &numColCh, 0);
+    std::string fullPath = FileSystem::GetPath(path);
+    unsigned char *bytes = stbi_load(fullPath.c_str(), &widthImg, &heightImg, &numColCh, 0);
 
     glGenTextures(1, &ID);
 
@@ -13,7 +14,7 @@ Texture::Texture(const char *path, TextureType type, GLenum unit, bool transpare
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST_MIPMAP_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-    GLenum wrapMode = transparent ? GL_CLAMP_TO_EDGE : GL_REPEAT;
+    GLenum wrapMode = transparency ? GL_CLAMP_TO_EDGE : GL_REPEAT;
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapMode);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapMode);
@@ -94,4 +95,10 @@ void Texture::Bind() const
 void Texture::Unbind() const
 {
     glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void Texture::SetShaderUniform(const ShaderProgram &shader, const std::string &uniformName) const
+{
+    shader.Bind();
+    shader.SetInt(uniformName, unit - GL_TEXTURE0);
 }

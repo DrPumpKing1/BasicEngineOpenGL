@@ -39,12 +39,13 @@ private:
     float movementSpeed;
     float altMovementSpeed;
     float mouseSensitivity;
-    float zoom;
 public:
     glm::vec3 position;
     glm::vec3 front;
     glm::vec3 up;
     glm::vec3 right;
+
+    float zoom;
 
     Camera(glm::vec3 position = glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f), float yaw = DEFAULT_YAW, float pitch = DEFAULT_PITCH);
 

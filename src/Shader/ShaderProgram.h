@@ -9,14 +9,14 @@ class ShaderProgram
 {
 private:
     GLuint ID;
-    ShaderUniforms &uniforms;
+    ShaderUniforms uniforms;
 
     Shader *vertexShader = nullptr;
     Shader *fragmentShader = nullptr;
     Shader *geometryShader = nullptr;
     Shader *computeShader = nullptr;
 public:
-    ShaderProgram(const std::vector<Shader> shaders);
+    ShaderProgram(const std::vector<Shader> &shaders);
     ~ShaderProgram();
 
     void Bind() const;

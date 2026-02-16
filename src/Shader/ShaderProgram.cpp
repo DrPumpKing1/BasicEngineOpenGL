@@ -1,8 +1,10 @@
 #include "ShaderProgram.h"
 
-ShaderProgram::ShaderProgram(const std::vector<Shader> &shaders)
+ShaderProgram::ShaderProgram(const std::vector<Shader> &shaders) : ID(glCreateProgram()), uniforms(ShaderUniforms(ID))
 {
-    ID{glCreateProgram()};
+    ID = glCreateProgram();
+    uniforms = ShaderUniforms(ID);
+
     for (const auto &shader : shaders) {
         AttachShader(shader);
     }
@@ -21,7 +23,7 @@ ShaderProgram::~ShaderProgram()
     glDeleteProgram(ID);
 }
 
-ShaderProgram::AttachShader(const Shader &shader)
+void ShaderProgram::AttachShader(const Shader &shader)
 {
     ShaderLinkInfo linkInfo {shader.GetLinkInfo()};
     Shader **shaderPtr = nullptr;
@@ -47,7 +49,8 @@ ShaderProgram::AttachShader(const Shader &shader)
         std::cerr << "ERROR::SHADER_PROGRAM already has a shader of type: " << ShaderTypeToString(linkInfo.type) << std::endl;
         return;
     }
-    *shaderPtr = &shader;
+    Shader *currentShader = const_cast<Shader*>(&shader);
+    *shaderPtr = currentShader;
     glAttachShader(ID, linkInfo.ID);
 }
 

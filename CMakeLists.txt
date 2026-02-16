@@ -67,6 +67,7 @@ ENDMACRO()
 file(GLOB SOURCE
         "src/**/*.h"
         "src/**/*.cpp"
+        "src/main.cpp"
 )
 add_executable(${PROJECT_NAME} ${COMMON} ${SOURCE})
 target_link_libraries(${PROJECT_NAME} ${LIBS})

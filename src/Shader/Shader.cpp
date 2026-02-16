@@ -17,14 +17,32 @@ std::string ShaderTypeToString(ShaderType type)
     }
 }
 
+GLenum ShaderTypeToGL(ShaderType type)
+{
+    switch (type)
+    {
+        case ShaderType::VERTEX:
+            return GL_VERTEX_SHADER;
+        case ShaderType::FRAGMENT:
+            return GL_FRAGMENT_SHADER;
+        case ShaderType::GEOMETRY:
+            return GL_GEOMETRY_SHADER;
+        case ShaderType::COMPUTE:
+            return GL_COMPUTE_SHADER;
+        default:
+            throw std::invalid_argument("Unknown shader type");
+    }
+}
+
 Shader::Shader(const std::string &path, ShaderType type) : type(type)
 {
-    const char *source = FileReader::ReadFile(vertexPath).c_str();
+    std::string shaderSource = FileReader::ReadFile(path);
+    const char *source = shaderSource.c_str();
 
-    ID {glCreateShader(GL_VERTEX_SHADER)};
+    ID = glCreateShader(ShaderTypeToGL(type));
     glShaderSource(ID, 1, &source, nullptr);
     glCompileShader(ID);
-    CheckCompileErrors(ID, type);
+    CheckCompileErrors();
 }
 
 Shader::~Shader()
