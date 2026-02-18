@@ -219,6 +219,7 @@ int main( void)
     delete resolveFBO;
     delete resolveBlurFBO;
     delete[] PingpongFBOs;
+    PingpongFBOs = nullptr;
 
     glfwTerminate();
     return 0;
