@@ -1,5 +1,6 @@
 #version 460 core
-out vec4 FragColor;
+layout(location = 0) out vec4 FragColor;
+layout(location = 1) out vec4 BrightColor;
 
 in VS_OUT {
     vec3 FragPos;
@@ -14,8 +15,8 @@ float linear = 0.7;
 float quadratic = 1.8;
 
 vec3 ambientColor = vec3(0.1, 0.1, 0.1);
-vec3 diffuseColor = vec3(0.9, 0.9, 0.9);
-vec3 specularColor = vec3(1.0, 1.0, 1.0);
+vec3 diffuseColor = vec3(1.0, 1.0, 1.0);
+vec3 specularColor = vec3(2.0, 2.0, 2.0);
 
 float shininess = 32.0;
 
@@ -24,6 +25,8 @@ float heightScale = 0.1;
 uniform sampler2D diffuseTexture;
 uniform sampler2D normalTexture;
 uniform sampler2D depthTexture;
+
+uniform float bloom = 1.0;
 
 vec2 ParallaxMapping(vec2 texCoords, vec3 viewDirection) 
 {
@@ -80,4 +83,10 @@ void main()
 
     vec3 result = ((ambientColor + diffuseColor * diffuse) * diffuseSample + specular * specularColor ) * attenuation;
     FragColor = vec4(result, 1.0);
+
+    float brightness = dot(result, vec3(0.2126, 0.7152, 0.0722));
+    if(brightness > bloom)
+        BrightColor = vec4(result, 1.0);
+    else
+        BrightColor = vec4(0.0, 0.0, 0.0, 1.0);
 }

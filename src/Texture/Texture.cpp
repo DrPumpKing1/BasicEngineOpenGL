@@ -94,6 +94,7 @@ void Texture::Bind() const
 
 void Texture::Unbind() const
 {
+    glActiveTexture(unit);
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
