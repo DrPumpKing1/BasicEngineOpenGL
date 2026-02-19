@@ -2,11 +2,13 @@
 
 all: build
 
+BUILD_DIR := build
+
 CONFIG ?= Debug
 
 build:
-	cmake -S . -B build
-	cmake --build build --config $(CONFIG)
+	cmake -S . -B $(BUILD_DIR)
+	cmake --build $(BUILD_DIR) --config $(CONFIG)
 
 clean:
-	cmake --build build --target clean
+	cmake --build $(BUILD_DIR) --target clean
