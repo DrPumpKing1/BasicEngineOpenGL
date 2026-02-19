@@ -13,6 +13,8 @@
 #include "Plane/Plane3DTangent.h"
 #include "Plane/Plane2D.h"
 #include "Framebuffer/Framebuffer.h"
+#include "UniformBlock/UniformBlock.h"
+#include "Sphere/SphereTangent.h"
 
 Framebuffer* FBOms;
 Framebuffer* resolveFBO;
@@ -84,22 +86,26 @@ int main( void)
 
     Plane2D* quadPlane2D = new Plane2D();
     Plane3DTangent* quadPlane = new Plane3DTangent();
+    SphereTangent* sphere = new SphereTangent(0.75f, 32, 32);
 
     Shader *vertexShader = new Shader("plane3Dtangent.vs", ShaderType::VERTEX);
     Shader *fragmentShader = new Shader("plane3DtangentBloom.fs", ShaderType::FRAGMENT);
     Shader *quadVertex = new Shader("quad.vs", ShaderType::VERTEX);
     Shader *quadHDRFragment = new Shader("quadHDR.fs", ShaderType::FRAGMENT);
+    Shader *sphereHDRFragment = new Shader("sphereTangentBloom.fs", ShaderType::FRAGMENT);
     Shader *guassianBlurFragment = new Shader("gaussianBlur.fs", ShaderType::FRAGMENT);
 
     ShaderProgram *shaderProgram = new ShaderProgram(std::vector<Shader>{*vertexShader, *fragmentShader});
     ShaderProgram *quadShaderProgram = new ShaderProgram(std::vector<Shader>{*quadVertex, *quadHDRFragment});
     ShaderProgram *gaussianBlurProgram = new ShaderProgram(std::vector<Shader>{*quadVertex, *guassianBlurFragment});
+    ShaderProgram *sphereShaderProgram = new ShaderProgram(std::vector<Shader>{*vertexShader, *sphereHDRFragment});
 
     delete vertexShader;
     delete fragmentShader;
     delete quadVertex;
     delete quadHDRFragment;
     delete guassianBlurFragment;
+    delete sphereHDRFragment;
 
     Texture *diffuseTexture = new Texture("resources/textures/bricks2.jpg", TextureType::DIFFUSE, GL_TEXTURE0);
     Texture *normalTexture = new Texture("resources/textures/bricks2_normal.jpg", TextureType::NORMAL, GL_TEXTURE1);
@@ -111,6 +117,12 @@ int main( void)
     depthTexture->SetShaderUniform(*shaderProgram, "depthTexture");
     shaderProgram->SetVec3("lightPosition", lightPosition);
 
+    sphereShaderProgram->Bind();
+    diffuseTexture->SetShaderUniform(*sphereShaderProgram, "diffuseTexture");
+    normalTexture->SetShaderUniform(*sphereShaderProgram, "normalTexture");
+    depthTexture->SetShaderUniform(*sphereShaderProgram, "depthTexture");
+    sphereShaderProgram->SetVec3("lightPosition", lightPosition);
+
     quadShaderProgram->Bind();
     quadShaderProgram->SetInt("colorTexture", 0);
     quadShaderProgram->SetInt("bloomTexture", 1);
@@ -118,7 +130,13 @@ int main( void)
     gaussianBlurProgram->Bind();
     gaussianBlurProgram->SetInt("sourceTexture", 0);
 
+    UniformBlock *cameraUniformBlock = new UniformBlock("Camera", 0, sizeof(CameraData));
+    cameraUniformBlock->SetShaderUniformBlock(*shaderProgram);
+    struct CameraData cameraData;
+
     glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW);
     glEnable(GL_DEPTH_TEST);
 
     while(!glfwWindowShouldClose(window)) {
@@ -128,33 +146,43 @@ int main( void)
 
         ProcessInput(window);
 
+        cameraData.view = camera.GetViewMatrix();
+        cameraData.projection = glm::perspective(glm::radians(camera.zoom), static_cast<float>(currentWidth) / currentHeight, 0.1f, 100.0f);
+        cameraData.viewPosition = glm::vec3(camera.position);
+        cameraUniformBlock->UpdateData(&cameraData);
+
         glEnable(GL_DEPTH_TEST);
         FBOms->Bind();
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        shaderProgram->Bind();
-        shaderProgram->SetMat4("view", camera.GetViewMatrix());
+        diffuseTexture->Bind();
+        normalTexture->Bind();
+        depthTexture->Bind();
 
-        glm::mat4 projection = glm::perspective(glm::radians(camera.zoom), static_cast<float>(currentWidth) / currentHeight, 0.1f, 100.0f);
-        shaderProgram->SetMat4("projection", projection);
+        shaderProgram->Bind();
 
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::rotate(model, currentTime * glm::radians(-10.0f), glm::vec3(1.0f, 0.0f, 1.0f));
         shaderProgram->SetMat4("model", model);
 
-        shaderProgram->SetVec3("viewPosition", camera.position);
-
         float bloom = 0.75f + sin(currentTime) * 0.25f;
         shaderProgram->SetFloat("bloom", bloom);
-
-        diffuseTexture->Bind();
-        normalTexture->Bind();
-        depthTexture->Bind();
 
         quadPlane->Bind();
         quadPlane->Draw();
         quadPlane->Unbind();
+
+        sphereShaderProgram->Bind();
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, -1.5f, 1.0f));
+        model = glm::rotate(model, currentTime * glm::radians(-25.0f), glm::vec3(0.0f, 1.0f, 9.0f));
+
+        sphereShaderProgram->SetMat4("model", model);
+        shaderProgram->SetFloat("bloom", bloom);
+
+        sphere->Draw();
 
         diffuseTexture->Unbind();
         normalTexture->Unbind();
@@ -206,10 +234,12 @@ int main( void)
 
     delete quadPlane2D;
     delete quadPlane;
+    delete sphere;
 
     delete shaderProgram;
     delete quadShaderProgram;
     delete gaussianBlurProgram;
+    delete sphereShaderProgram;
 
     delete diffuseTexture;
     delete normalTexture;
@@ -220,6 +250,8 @@ int main( void)
     delete resolveBlurFBO;
     delete[] PingpongFBOs;
     PingpongFBOs = nullptr;
+
+    delete cameraUniformBlock;
 
     glfwTerminate();
     return 0;

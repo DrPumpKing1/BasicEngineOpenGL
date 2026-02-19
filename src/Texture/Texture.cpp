@@ -103,3 +103,22 @@ void Texture::SetShaderUniform(const ShaderProgram &shader, const std::string &u
     shader.Bind();
     shader.SetInt(uniformName, unit - GL_TEXTURE0);
 }
+
+std::string TextureTypeToString(TextureType type)
+{
+    switch (type)
+    {
+        case TextureType::DIFFUSE:
+            return "diffuse";
+        case TextureType::SPECULAR:
+            return "specular";
+        case TextureType::NORMAL:
+            return "normal";
+        case TextureType::HEIGHT:
+            return "height";
+        case TextureType::DISPLACEMENT:
+            return "displacement";
+        default:
+            throw std::invalid_argument("Invalid TextureType");
+    }
+}

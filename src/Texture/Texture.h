@@ -16,6 +16,8 @@ enum class TextureType {
     DISPLACEMENT,
 };
 
+std::string TextureTypeToString(TextureType type);
+
 class Texture
 {
 private:
@@ -31,4 +33,6 @@ public:
     void Unbind() const;
 
     void SetShaderUniform(const ShaderProgram &shader, const std::string &uniformName) const;
+
+    std::string GetType() const { return TextureTypeToString(type); }
 };

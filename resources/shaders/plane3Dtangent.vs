@@ -13,12 +13,16 @@ out VS_OUT {
     vec3 TangentFragPos;
 } vs_out;
 
+layout(std140, binding = 0) uniform Camera
+{
+    mat4 view;
+    mat4 projection;
+    vec3 viewPosition;
+};
+
 uniform mat4 model;
-uniform mat4 projection;
-uniform mat4 view;
 
 uniform vec3 lightPosition;
-uniform vec3 viewPosition;
 
 void main() 
 {

@@ -2,7 +2,7 @@
 
 #include <glad/gl.h>
 
-#include "Vertex.h"
+#include "../Vertex/Vertex.h"
 
 class Plane
 {
