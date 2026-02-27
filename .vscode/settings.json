@@ -1,0 +1,8 @@
+{
+    "search.exclude": {
+        "**/includes/**/*.h": true,
+        "**/includes/**/*.hpp": true,
+        "**/includes/**/*.cpp": true,
+        "**/includes/**/*.ipp": true,
+    }
+}

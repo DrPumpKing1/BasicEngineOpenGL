@@ -1,1 +1,1 @@
-inline const char * logl_root = "${CMAKE_SOURCE_DIR}";
+inline const char * project_source_directory = "${CMAKE_SOURCE_DIR}";

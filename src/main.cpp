@@ -7,19 +7,7 @@
 
 #include <iostream>
 
-#include "Camera/Camera.h"
-#include "Shader/ShaderProgram.h"
-#include "Texture/Texture.h"
-#include "Plane/Plane3DTangent.h"
-#include "Plane/Plane2D.h"
-#include "Framebuffer/Framebuffer.h"
-#include "UniformBlock/UniformBlock.h"
-#include "Sphere/SphereTangent.h"
-
-Framebuffer* FBOms;
-Framebuffer* resolveFBO;
-Framebuffer* resolveBlurFBO;
-Framebuffer* PingpongFBOs;
+#include "Engine/Engine.h"
 
 const unsigned int WIDTH {800};
 const unsigned int HEIGHT {600};
@@ -31,7 +19,7 @@ void CursorCallback(GLFWwindow* window, double xposIn, double yposIn);
 void ScrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 void ProcessInput(GLFWwindow* window);
 
-Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+Camera camera(glm::vec3(0.0f, 0.0f, 6.0f));
 
 float deltaTime{0.0f};
 float lastTime{0.0f};
@@ -76,74 +64,72 @@ int main( void)
         return -1;
     }
 
-    FBOms = new Framebuffer(true, true, 2, currentWidth, currentHeight);
-    PingpongFBOs = new Framebuffer[2] {
-        Framebuffer(false, false, 1, currentWidth, currentHeight),
-        Framebuffer(false, false, 1, currentWidth, currentHeight)
-    };
-    resolveFBO = new Framebuffer(false, false, 1, currentWidth, currentHeight);
-    resolveBlurFBO = new Framebuffer(false, false, 1, currentWidth, currentHeight);
+    unsigned int instances = 5000;
+    glm::vec3 *positions = new glm::vec3[instances];
+    srand(glfwGetTime()); // initialize random seed
+    float radius = 2.5f;
+    float offset = 0.5f;
+    for (unsigned int i = 0; i < instances; i++)
+    {
+        float angle = (float)i / (float)instances * 360.0f;
+        float displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+        float x = sin(angle) * radius + displacement;
+        displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+        float y = displacement * 0.4f; // keep height of field smaller compared to width of x and z
+        displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+        float z = cos(angle) * radius + displacement;
 
-    Plane2D* quadPlane2D = new Plane2D();
-    Plane3DTangent* quadPlane = new Plane3DTangent();
-    SphereTangent* sphere = new SphereTangent(0.75f, 32, 32);
+        positions[i] = glm::vec3(x, y, z);
+    }
 
-    Shader *vertexShader = new Shader("plane3Dtangent.vs", ShaderType::VERTEX);
-    Shader *fragmentShader = new Shader("plane3DtangentBloom.fs", ShaderType::FRAGMENT);
-    Shader *quadVertex = new Shader("quad.vs", ShaderType::VERTEX);
-    Shader *quadHDRFragment = new Shader("quadHDR.fs", ShaderType::FRAGMENT);
-    Shader *sphereHDRFragment = new Shader("sphereTangentBloom.fs", ShaderType::FRAGMENT);
-    Shader *guassianBlurFragment = new Shader("gaussianBlur.fs", ShaderType::FRAGMENT);
+    ParticlesLit *particlesLit = new ParticlesLit(instances);
+    particlesLit->AddProperties(3, positions);
 
-    ShaderProgram *shaderProgram = new ShaderProgram(std::vector<Shader>{*vertexShader, *fragmentShader});
-    ShaderProgram *quadShaderProgram = new ShaderProgram(std::vector<Shader>{*quadVertex, *quadHDRFragment});
-    ShaderProgram *gaussianBlurProgram = new ShaderProgram(std::vector<Shader>{*quadVertex, *guassianBlurFragment});
-    ShaderProgram *sphereShaderProgram = new ShaderProgram(std::vector<Shader>{*vertexShader, *sphereHDRFragment});
+    std::shared_ptr<Shader> vertexShader, fragmentShader;
 
-    delete vertexShader;
-    delete fragmentShader;
-    delete quadVertex;
-    delete quadHDRFragment;
-    delete guassianBlurFragment;
-    delete sphereHDRFragment;
+    std::shared_ptr<Texture> particleTexture;
+    ResourceManager::Instance().NewShaderAsset("shaders/particleLit.vs", ShaderType::VERTEX, vertexShader);
+    ResourceManager::Instance().NewShaderAsset("shaders/particleLit.fs", ShaderType::FRAGMENT, fragmentShader);
 
-    Texture *diffuseTexture = new Texture("resources/textures/bricks2.jpg", TextureType::DIFFUSE, GL_TEXTURE0);
-    Texture *normalTexture = new Texture("resources/textures/bricks2_normal.jpg", TextureType::NORMAL, GL_TEXTURE1);
-    Texture *depthTexture = new Texture("resources/textures/bricks2_disp.jpg", TextureType::DISPLACEMENT, GL_TEXTURE2);
+    ShaderProgram *shaderProgram = new ShaderProgram();
+    shaderProgram->AttachShader(vertexShader);
+    shaderProgram->AttachShader(fragmentShader);
+    shaderProgram->Compile();
 
-    shaderProgram->Bind();
-    diffuseTexture->SetShaderUniform(*shaderProgram, "diffuseTexture");
-    normalTexture->SetShaderUniform(*shaderProgram, "normalTexture");
-    depthTexture->SetShaderUniform(*shaderProgram, "depthTexture");
-    shaderProgram->SetVec3("lightPosition", lightPosition);
+    vertexShader.reset();
+    fragmentShader.reset();
 
-    sphereShaderProgram->Bind();
-    diffuseTexture->SetShaderUniform(*sphereShaderProgram, "diffuseTexture");
-    normalTexture->SetShaderUniform(*sphereShaderProgram, "normalTexture");
-    depthTexture->SetShaderUniform(*sphereShaderProgram, "depthTexture");
-    sphereShaderProgram->SetVec3("lightPosition", lightPosition);
-
-    quadShaderProgram->Bind();
-    quadShaderProgram->SetInt("colorTexture", 0);
-    quadShaderProgram->SetInt("bloomTexture", 1);
-
-    gaussianBlurProgram->Bind();
-    gaussianBlurProgram->SetInt("sourceTexture", 0);
+    ResourceManager::Instance().NewTextureAsset("textures/bricks2.jpg", TextureType::DIFFUSE, GL_TEXTURE0, false, particleTexture);
 
     UniformBlock *cameraUniformBlock = new UniformBlock("Camera", 0, sizeof(CameraData));
     cameraUniformBlock->SetShaderUniformBlock(*shaderProgram);
     struct CameraData cameraData;
 
+    shaderProgram->Bind();
+    shaderProgram->SetFloat("scale", 0.5f);
+    shaderProgram->SetVec2("offset", glm::vec2(0.0f, 0.0f));
+    particleTexture->SetShaderUniform(*shaderProgram, "diffuseTexture");
+
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
     glEnable(GL_DEPTH_TEST);
+
+    glEnable(GL_FRAMEBUFFER_SRGB);
+
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
     while(!glfwWindowShouldClose(window)) {
         float currentTime = static_cast<float>(glfwGetTime());
         deltaTime = currentTime - lastTime;
+        float fps = 1.0f / deltaTime;
         lastTime = currentTime;
 
+        glfwSetWindowTitle(window, ("Basic OpenGL Engine - FPS: " + std::to_string(fps)).c_str());
         ProcessInput(window);
 
         cameraData.view = camera.GetViewMatrix();
@@ -151,107 +137,32 @@ int main( void)
         cameraData.viewPosition = glm::vec3(camera.position);
         cameraUniformBlock->UpdateData(&cameraData);
 
-        glEnable(GL_DEPTH_TEST);
-        FBOms->Bind();
-        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        diffuseTexture->Bind();
-        normalTexture->Bind();
-        depthTexture->Bind();
-
         shaderProgram->Bind();
+        shaderProgram->SetFloat("time", currentTime);
+        float radius = 0.05f + sin(currentTime) * 0.025f;
+        shaderProgram->SetFloat("radius", radius);
 
-        glm::mat4 model = glm::mat4(1.0f);
-        model = glm::rotate(model, currentTime * glm::radians(-10.0f), glm::vec3(1.0f, 0.0f, 1.0f));
-        shaderProgram->SetMat4("model", model);
+        particleTexture->Bind();
 
-        float bloom = 0.75f + sin(currentTime) * 0.25f;
-        shaderProgram->SetFloat("bloom", bloom);
+        particlesLit->Draw(instances);
 
-        quadPlane->Bind();
-        quadPlane->Draw();
-        quadPlane->Unbind();
-
-        sphereShaderProgram->Bind();
-
-        model = glm::mat4(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, -1.5f, 1.0f));
-        model = glm::rotate(model, currentTime * glm::radians(-25.0f), glm::vec3(0.0f, 1.0f, 9.0f));
-
-        sphereShaderProgram->SetMat4("model", model);
-        shaderProgram->SetFloat("bloom", bloom);
-
-        sphere->Draw();
-
-        diffuseTexture->Unbind();
-        normalTexture->Unbind();
-        depthTexture->Unbind();
-
-        glDisable(GL_DEPTH_TEST);
-
-        BlitFramebuffer(*FBOms, *resolveFBO, GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT0);
-        BlitFramebuffer(*FBOms, *resolveBlurFBO, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT0);
-
-        bool horizontal = true;
-        bool firstIteration = true;
-        unsigned int pingpong = 10;
-        gaussianBlurProgram->Bind();
-        quadPlane2D->Bind();
-        for (unsigned int i = 0; i < pingpong; i++)
-        {
-            PingpongFBOs[horizontal].Bind();
-            glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
-            gaussianBlurProgram->SetBool("horizontal", horizontal);
-            if(firstIteration) {
-                resolveBlurFBO->BindTexture(0, GL_TEXTURE0);
-                firstIteration = false;
-            } else {
-                PingpongFBOs[!horizontal].BindTexture(0, GL_TEXTURE0);
-            }
-            quadPlane2D->Draw();
-            horizontal = !horizontal;
-        }
-        quadPlane2D->Unbind();
-
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
-        glClear(GL_COLOR_BUFFER_BIT);
-
-        quadShaderProgram->Bind();
-        float exposure = 0.75f + sin(currentTime) * 0.25f;
-        quadShaderProgram->SetFloat("exposure", exposure);
-
-        resolveFBO->BindTexture(0, GL_TEXTURE0);
-        PingpongFBOs[!horizontal].BindTexture(0, GL_TEXTURE1);
-        resolveBlurFBO->BindTexture(0, GL_TEXTURE1);
-        quadPlane2D->Bind();
-        quadPlane2D->Draw();
-        quadPlane2D->Unbind();
+        particleTexture->Unbind();
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
-    delete quadPlane2D;
-    delete quadPlane;
-    delete sphere;
+    delete particlesLit;
 
     delete shaderProgram;
-    delete quadShaderProgram;
-    delete gaussianBlurProgram;
-    delete sphereShaderProgram;
-
-    delete diffuseTexture;
-    delete normalTexture;
-    delete depthTexture;
-
-    delete FBOms;
-    delete resolveFBO;
-    delete resolveBlurFBO;
-    delete[] PingpongFBOs;
-    PingpongFBOs = nullptr;
 
     delete cameraUniformBlock;
+
+    particleTexture.reset();
+
+    ResourceManager::Instance().Release();
 
     glfwTerminate();
     return 0;
@@ -290,11 +201,6 @@ void ProcessInput(GLFWwindow* window) {
 void FramebufferSizeCallback(GLFWwindow* window, int width, int height) {
     currentWidth = width;
     currentHeight = height;
-    FBOms->Resize(width, height);
-    resolveFBO->Resize(width, height);
-    resolveBlurFBO->Resize(width, height);
-    PingpongFBOs[0].Resize(width, height);
-    PingpongFBOs[1].Resize(width, height);
     glViewport(0, 0, width, height);
 }
 
