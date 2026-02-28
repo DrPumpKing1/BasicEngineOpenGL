@@ -13,9 +13,12 @@ const std::string USAGE_REGISTRY_RELATIVE_PATH = "resources/usage_registry.txt";
 class AssetBundler 
 {
 private:
+    std::string inputDirectory;
+    std::string outputDirectory;
+
     std::vector<std::string> relativePaths;
 public:
-    AssetBundler();
+    AssetBundler(const std::string &inputDirectory, const std::string &outputDirectory);
     ~AssetBundler();
 private:
     void ReadUsageRegistry();

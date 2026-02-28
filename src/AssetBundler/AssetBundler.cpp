@@ -1,6 +1,6 @@
 #include "AssetBundler.h"
 
-AssetBundler::AssetBundler()
+AssetBundler::AssetBundler(const std::string &inputDirectory, const std::string &outputDirectory) : inputDirectory(inputDirectory), outputDirectory(outputDirectory)
 {
     ReadUsageRegistry();
     for (const auto &relativePath : relativePaths)
@@ -30,8 +30,8 @@ void AssetBundler::ReadUsageRegistry() {
 void AssetBundler::CopyFile(const std::string &relativePath) {
     if (relativePath.empty()) return;
 
-    std::filesystem::path sourcePath = std::filesystem::path(project_source_directory) / "resources" / relativePath;
-    std::filesystem::path destinationPath = std::filesystem::current_path() / "Release" / "resources" / relativePath;
+    std::filesystem::path sourcePath = std::filesystem::path(inputDirectory) / relativePath;
+    std::filesystem::path destinationPath = std::filesystem::path(outputDirectory) / relativePath;
 
     std::filesystem::path folderPath = destinationPath.parent_path();
     if (!folderPath.empty()) {
