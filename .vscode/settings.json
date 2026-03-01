@@ -4,5 +4,6 @@
         "**/includes/**/*.hpp": true,
         "**/includes/**/*.cpp": true,
         "**/includes/**/*.ipp": true,
-    }
+    },
+    "cmake.automaticReconfigure": false
 }

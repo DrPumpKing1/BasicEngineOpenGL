@@ -11,7 +11,7 @@
             "cwd": "${workspaceFolder}",
             "environment": [],
             "console": "integratedTerminal",
-            "preLaunchTask": "CMake: Build Debug"
+            "preLaunchTask": "CMake (Windows): Build Debug"
         }
     ]
 }

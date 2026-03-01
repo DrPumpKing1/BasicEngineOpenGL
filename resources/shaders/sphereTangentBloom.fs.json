@@ -1,5 +1,5 @@
 {
-    "id": "7db89e94-27dc-459c-9242-e721f1520a23",
-    "path": "shaders\\sphereTangentBloom.fs",
+    "id": "97af7007-34d7-4f9c-a5b1-70361f9a1e68",
+    "path": "shaders/sphereTangentBloom.fs",
     "type": "Shader"
 }

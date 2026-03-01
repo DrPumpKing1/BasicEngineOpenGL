@@ -2,10 +2,10 @@
   "version": 3,
   "configurePresets": [
     {
-      "name": "base-vs",
-      "hidden": true,
+      "name": "windows-msvc",
+      "displayName": "Windows MSVC",
       "generator": "Visual Studio 17 2022",
-      "binaryDir": "${sourceDir}/build/${presetName}",
+      "binaryDir": "${sourceDir}/build-windows/${presetName}",
       "environment": {
         "VCPKG_ROOT": "C:/Users/salva/vcpkg"
       },
@@ -14,22 +14,35 @@
       }
     },
     {
-      "name": "windows-x64",
-      "displayName": "Windows x64 (vcpkg)",
-      "inherits": "base-vs"
+      "name": "linux-debug",
+      "displayName": "Linux Ninja Debug",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-linux/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "linux-release",
+      "displayName": "Linux Ninja Release",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-linux/${presetName}",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
     }
   ],
   "buildPresets": [
     {
       "name": "vs-debug",
-      "displayName": "Build: Debug",
-      "configurePreset": "windows-x64",
+      "displayName": "Build (Windows): Debug",
+      "configurePreset": "windows-msvc",
       "configuration": "Debug"
     },
     {
       "name": "vs-release",
-      "displayName": "Build: Release",
-      "configurePreset": "windows-x64",
+      "displayName": "Build (Windows): Release",
+      "configurePreset": "windows-msvc",
       "configuration": "Release"
     }
   ]

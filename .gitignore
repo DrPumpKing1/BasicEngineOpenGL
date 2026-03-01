@@ -1,5 +1,7 @@
 bin/
 build/
+build-linux/
+build-windows/
 
 *.pdb
 *.tag

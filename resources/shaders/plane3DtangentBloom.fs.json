@@ -1,5 +1,5 @@
 {
-    "id": "4b2ec25a-3243-41d1-a1bc-e36d955bd00e",
-    "path": "shaders\\plane3DtangentBloom.fs",
+    "id": "fdffefd2-a951-4d12-9941-b99243b124d4",
+    "path": "shaders/plane3DtangentBloom.fs",
     "type": "Shader"
 }

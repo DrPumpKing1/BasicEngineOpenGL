@@ -2,33 +2,54 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "CMake: Configure",
+            "label": "CMake (Windows): Configure",
             "type": "shell",
-            "command": "cmake --preset windows-x64",
+            "command": "cmake --preset windows-msvc",
             "group": "none",
             "problemMatcher": [],
             "detail": "Runs the initial CMake configuration with vcpkg."
         },
         {
-            "label": "CMake: Build Debug",
+            "label": "CMake (Linux Debug): Configure",
+            "type": "shell",
+            "command": "wsl",
+            "args": [
+                "cmake",
+                "--preset",
+                "linux-debug"
+            ],
+            "group": "none",
+            "problemMatcher": [],
+            "detail": "Runs the initial CMake configuration with vcpkg."
+        },
+        {
+            "label": "CMake (Linux Release): Configure",
+            "type": "shell",
+            "command": "cmake --preset linux-release",
+            "group": "none",
+            "problemMatcher": [],
+            "detail": "Runs the initial CMake configuration with vcpkg."
+        },
+        {
+            "label": "CMake (Windows): Build Debug",
             "type": "shell",
             "command": "cmake --build --preset vs-debug",
             "group": {
                 "kind": "build",
                 "isDefault": true
             },
-            "dependsOn": [ "CMake: Configure" ],
+            "dependsOn": [ "CMake (Windows): Configure" ],
             "problemMatcher": "$msCompile"
         },
         {
-            "label": "CMake: Build Release",
+            "label": "CMake (Windows): Build Release",
             "type": "shell",
             "command": "cmake --build --preset vs-release",
             "group": "build",
             "problemMatcher": "$msCompile"
         },
         {
-            "label": "CMake: Clean",
+            "label": "CMake (Windows): Clean",
             "type": "shell",
             "command": "cmake --build --preset vs-debug --target clean",
             "problemMatcher": []
