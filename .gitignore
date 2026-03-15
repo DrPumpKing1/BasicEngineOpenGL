@@ -5,3 +5,21 @@ build-windows/
 
 *.pdb
 *.tag
+
+*.vs.json
+*.fs.json
+*.gs.json
+*.tcs.json
+*.tes.json
+*.cs.json
+*.png.json
+*.jpg.json
+*.jpeg.json
+*.bmp.json
+*.obj.json
+*.fbx.json
+*.wav.json
+*.mp3.json
+*.ttf.json
+
+usage_registry.txt
