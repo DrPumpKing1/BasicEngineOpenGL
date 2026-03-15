@@ -1,5 +1,0 @@
-{
-    "id": "f400b3ff-05b4-454b-8c4b-c24245def75c",
-    "path": "shaders/gaussianBlur.fs",
-    "type": "Shader"
-}
