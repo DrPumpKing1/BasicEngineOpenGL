@@ -7,3 +7,7 @@ ShaderAsset::ShaderAsset(const std::string &path, ShaderType type) : path(path) 
 TextureAsset::TextureAsset(const std::string &path, TextureType type, GLenum unit, bool transparency) : path(path) {
     reference = std::make_shared<Texture>(path.c_str(), type, unit, transparency);
 }
+
+ModelAsset::ModelAsset(const std::string &path) : path(path) {
+    reference = std::make_shared<Model>(path);
+}

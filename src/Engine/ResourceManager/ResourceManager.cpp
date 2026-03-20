@@ -1,4 +1,5 @@
 #include "ResourceManager.h"
+#include "../ResourceManager/ResourceManager.h"
 
 ResourceManager::ResourceManager()
 {
@@ -56,6 +57,31 @@ void ResourceManager::NewTextureAsset(const std::string &relativePath, TextureTy
     }
     TextureAsset asset(path.string(), type, unit, transparency);
     textures.push_back(asset);
+    asset.Share(shareTo);
+    if(std::find(relativePaths.begin(), relativePaths.end(), relativePath) == relativePaths.end()) {
+        relativePaths.push_back(relativePath);
+    }
+}
+
+void ResourceManager::NewTextureAssetFromPath(const std::string &path, TextureType type, GLenum unit, bool transparency, std::shared_ptr<Texture>& shareTo) {
+    std::filesystem::path absolutePath(path);
+    if(absolutePath.empty()) {
+        std::cerr << "Asset not found at path " << path << std::endl;
+        return;
+    }
+    TextureAsset asset(absolutePath.string(), type, unit, transparency);
+    textures.push_back(asset);
+    asset.Share(shareTo);
+}
+
+void ResourceManager::NewModelAsset(const std::string &relativePath, std::shared_ptr<Model>& shareTo) {
+    std::filesystem::path path = GetAssetPath(relativePath);
+    if(path.empty()) {
+        std::cerr << "Asset not found at path " << relativePath << std::endl;
+        return;
+    }
+    ModelAsset asset(path.string());
+    models.push_back(asset);
     asset.Share(shareTo);
     if(std::find(relativePaths.begin(), relativePaths.end(), relativePath) == relativePaths.end()) {
         relativePaths.push_back(relativePath);

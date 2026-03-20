@@ -22,9 +22,10 @@ class Texture
 private:
     GLuint ID;
     TextureType type;
-    std::string path;
     GLenum unit;
 public:
+    std::string path;
+
     Texture(const char *path, TextureType type, GLenum unit, bool transparency = false);
     ~Texture();
 
@@ -33,5 +34,6 @@ public:
 
     void SetShaderUniform(const ShaderProgram &shader, const std::string &uniformName) const;
 
-    std::string GetType() const { return TextureTypeToString(type); }
+    TextureType GetType() const { return type; }
+    std::string GetTypeName() const { return TextureTypeToString(type); }
 };

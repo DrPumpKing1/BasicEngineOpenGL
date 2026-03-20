@@ -5,10 +5,10 @@
             "name": "Debug: Launch Project",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/windows-x64/Debug/MyApp.exe",
+            "program": "${workspaceFolder}/build-windows/windows-msvc/Debug/BasicOpenGL.exe",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
+            "cwd": "${workspaceFolder}/build-windows/windows-msvc/Debug",
             "environment": [],
             "console": "integratedTerminal",
             "preLaunchTask": "CMake (Windows): Build Debug"

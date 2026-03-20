@@ -49,6 +49,8 @@ set(ENGINE_INSTANCES
 set(ENGINE_MODEL
     "src/Engine/Model/Mesh.cpp"
     "src/Engine/Model/Mesh.h"
+    "src/Engine/Model/Model.cpp"
+    "src/Engine/Model/Model.h"
 )
 
 set(ENGINE_PARTICLE
@@ -167,15 +169,15 @@ add_custom_command(
 set(ENGINE_SOURCE 
     ${UTILS_ASSETPROCESSOR}
     ${ENGINE_SYSTEM_UTILS}
+    ${ENGINE_RESOURCES}
     ${ENGINE_SHADERS}
     ${ENGINE_TEXTURE}
-    ${ENGINE_RESOURCES}
+    ${ENGINE_MODEL}
     ${ENGINE_CAMERA}
     ${ENGINE_PRIMITIVES}
     ${ENGINE_FRAMEBUFFER}
     ${ENGINE_INSTANCES}
     ${ENGINE_PARTICLE}
-    ${ENGINE_MODEL}
     ${ENGINE_UNIFORMS}
     "src/Engine/Engine.h"
     "src/main.cpp"

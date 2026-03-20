@@ -26,16 +26,17 @@ const std::unordered_map<std::string, AssetType> assetTypeMap = {
     {".jpeg", AssetType::Texture},
     {".bmp", AssetType::Texture},
     {".obj", AssetType::Model},
+    {".mtl", AssetType::Model},
     {".fbx", AssetType::Model},
     {".wav", AssetType::Audio},
     {".mp3", AssetType::Audio},
-    {".ttf", AssetType::Font}
+    {".ttf", AssetType::Font},
 };
 
 inline std::vector<std::string> supportedExtensions = {
     ".vs", ".fs", ".gs", ".tcs", ".tes", ".cs",
     ".png", ".jpg", ".jpeg", ".bmp",
-    ".obj", ".fbx", ".wav", ".mp3", ".ttf"
+    ".obj", ".mtl", ".fbx", ".wav", ".mp3", ".ttf",
 };
 
 class AssetProcessor

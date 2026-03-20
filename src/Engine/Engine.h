@@ -9,4 +9,5 @@
 #include "UniformBlock/UniformBlock.h"
 #include "Sphere/SphereTangent.h"
 #include "Particles/ParticlesLit.h"
+#include "Model/Model.h"
 #include "ResourceManager/ResourceManager.h"

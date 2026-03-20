@@ -87,20 +87,20 @@ Texture::~Texture()
 
 void Texture::Bind() const
 {
-    glActiveTexture(unit);
+    glActiveTexture(GL_TEXTURE0 + unit);
     glBindTexture(GL_TEXTURE_2D, ID);
 }
 
 void Texture::Unbind() const
 {
-    glActiveTexture(unit);
+    glActiveTexture(GL_TEXTURE0 + unit);
     glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void Texture::SetShaderUniform(const ShaderProgram &shader, const std::string &uniformName) const
 {
     shader.Bind();
-    shader.SetInt(uniformName, unit - GL_TEXTURE0);
+    shader.SetInt(uniformName, GL_TEXTURE0 + unit);
 }
 
 std::string TextureTypeToString(TextureType type)

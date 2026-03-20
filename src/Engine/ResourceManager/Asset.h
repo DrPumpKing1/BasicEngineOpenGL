@@ -2,6 +2,7 @@
 
 #include "../Shader/Shader.h"
 #include "../Texture/Texture.h"
+#include "../Model/Model.h"
 
 #include <boost/uuid/uuid.hpp>
 #include <memory>
@@ -37,6 +38,23 @@ public:
     }
 
     void Share(std::shared_ptr<Texture> &shareTo) {
+        shareTo = reference;
+    }
+};
+
+class ModelAsset
+{
+private:
+    std::shared_ptr<Model> reference;
+    std::filesystem::path path;
+public:
+
+    ModelAsset(const std::string &path);
+    ~ModelAsset() {
+        reference.reset();
+    }
+
+    void Share(std::shared_ptr<Model> &shareTo) {
         shareTo = reference;
     }
 };

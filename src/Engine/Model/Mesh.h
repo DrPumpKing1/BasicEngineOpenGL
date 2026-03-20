@@ -7,18 +7,20 @@
 #include "../Texture/Texture.h"
 
 #include <vector>
+#include <memory>
 
 class Mesh 
 {
 private:
-    std::vector<Vertex3D> vertices;
+    std::vector<Vertex3DTangent> vertices;
     std::vector<unsigned int> indices;
-    std::vector<Texture> textures;
+    std::vector<std::weak_ptr<Texture>> textures;
 
     GLuint VAO, VBO, EBO;
 public:
-    Mesh(std::vector<Vertex3D> vertices, std::vector<unsigned int> indices, std::vector<Texture> textures);
+    Mesh();
     ~Mesh();
 
+    void Construct(std::vector<Vertex3DTangent> vertices, std::vector<unsigned int> indices, std::vector<std::weak_ptr<Texture>> textures);
     void Draw(ShaderProgram& shaderProgram);
 };

@@ -11,6 +11,7 @@ private:
     std::unordered_map<std::filesystem::path, std::filesystem::path> pathsTable;
     std::vector<ShaderAsset> shaders;
     std::vector<TextureAsset> textures;
+    std::vector<ModelAsset> models;
     std::vector<std::string> relativePaths;
 public:
     static ResourceManager& Instance() {
@@ -26,7 +27,11 @@ public:
     std::filesystem::path GetAssetPath(const std::filesystem::path &relativePath);
 
     void NewShaderAsset(const std::string &relativePath, ShaderType type, std::shared_ptr<Shader> &shareTo);
+
     void NewTextureAsset(const std::string &relativePath, TextureType type, GLenum unit, bool transparency, std::shared_ptr<Texture> &shareTo);
+    void NewTextureAssetFromPath(const std::string &path, TextureType type, GLenum unit, bool transparency, std::shared_ptr<Texture> &shareTo);
+
+    void NewModelAsset(const std::string &relativePath, std::shared_ptr<Model> &shareTo);
 private:
     ResourceManager();
 };

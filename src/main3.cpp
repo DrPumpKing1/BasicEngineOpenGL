@@ -29,7 +29,7 @@ float lastCursorY{HEIGHT / 2.0f};
 bool firstCursorClick{true};
 bool cursorInGame {false};
 
-glm::vec3 lightPosition(0.0f, 2.5f, 0.0f);
+glm::vec3 lightPosition(0.0f, 1.0f, 0.5f);
 
 int main( void)
 {
@@ -64,13 +64,32 @@ int main( void)
         return -1;
     }
 
-    std::shared_ptr<Model> backpack;
-    ResourceManager::Instance().NewModelAsset("objects/backpack/backpack.obj", backpack);
+    unsigned int instances = 5000;
+    glm::vec3 *positions = new glm::vec3[instances];
+    srand(glfwGetTime()); // initialize random seed
+    float radius = 2.5f;
+    float offset = 0.5f;
+    for (unsigned int i = 0; i < instances; i++)
+    {
+        float angle = (float)i / (float)instances * 360.0f;
+        float displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+        float x = sin(angle) * radius + displacement;
+        displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+        float y = displacement * 0.4f; // keep height of field smaller compared to width of x and z
+        displacement = (rand() % (int)(2 * offset * 100)) / 100.0f - offset;
+        float z = cos(angle) * radius + displacement;
+
+        positions[i] = glm::vec3(x, y, z);
+    }
+
+    ParticlesLit *particlesLit = new ParticlesLit(instances);
+    particlesLit->AddProperties(3, positions);
 
     std::shared_ptr<Shader> vertexShader, fragmentShader;
 
-    ResourceManager::Instance().NewShaderAsset("shaders/plane3Dtangent.vs", ShaderType::VERTEX, vertexShader);
-    ResourceManager::Instance().NewShaderAsset("shaders/model3D.fs", ShaderType::FRAGMENT, fragmentShader);
+    std::shared_ptr<Texture> particleTexture;
+    ResourceManager::Instance().NewShaderAsset("shaders/particleLit.vs", ShaderType::VERTEX, vertexShader);
+    ResourceManager::Instance().NewShaderAsset("shaders/particleLit.fs", ShaderType::FRAGMENT, fragmentShader);
 
     ShaderProgram *shaderProgram = new ShaderProgram();
     shaderProgram->AttachShader(vertexShader);
@@ -80,16 +99,23 @@ int main( void)
     vertexShader.reset();
     fragmentShader.reset();
 
+    ResourceManager::Instance().NewTextureAsset("textures/bricks2.jpg", TextureType::DIFFUSE, GL_TEXTURE0, false, particleTexture);
+
     UniformBlock *cameraUniformBlock = new UniformBlock("Camera", 0, sizeof(CameraData));
     cameraUniformBlock->SetShaderUniformBlock(*shaderProgram);
     struct CameraData cameraData;
 
     shaderProgram->Bind();
-    shaderProgram->SetVec3("lightPosition", lightPosition);
+    shaderProgram->SetFloat("scale", 0.5f);
+    shaderProgram->SetVec2("offset", glm::vec2(0.0f, 0.0f));
+    particleTexture->SetShaderUniform(*shaderProgram, "diffuseTexture");
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     glEnable(GL_DEPTH_TEST);
 
@@ -113,23 +139,28 @@ int main( void)
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        glm::mat4 model(1.0f);
-        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
-        model = glm::scale(model, glm::vec3(1.0f, 1.0f, 1.0f));
         shaderProgram->Bind();
-        shaderProgram->SetMat4("model", model);
+        shaderProgram->SetFloat("time", currentTime);
+        float radius = 0.05f + sin(currentTime) * 0.025f;
+        shaderProgram->SetFloat("radius", radius);
 
-        backpack->Draw(*shaderProgram);
+        particleTexture->Bind();
+
+        particlesLit->Draw(instances);
+
+        particleTexture->Unbind();
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
+    delete particlesLit;
+
     delete shaderProgram;
 
     delete cameraUniformBlock;
 
-    backpack.reset();
+    particleTexture.reset();
 
     ResourceManager::Instance().Release();
 
