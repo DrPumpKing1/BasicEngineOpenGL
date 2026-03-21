@@ -16,11 +16,12 @@ class Model
 private:
     std::vector<std::shared_ptr<Texture>> texturesLoaded;
     std::vector<Mesh> meshes;
+    std::filesystem::path absolutePath;
     std::filesystem::path directory;
 
     unsigned int meshCounter;
 public:
-    Model(std::string const &path) 
+    Model(std::string const &path) : absolutePath(path)
     {
         meshCounter = 0;
         loadModel(path);

@@ -15,16 +15,24 @@ void Model::Draw(ShaderProgram &shaderProgram) {
 void Model::loadModel(std::string const& path) {
     Assimp::Importer importer;
 
-    std::filesystem::path absolutePath(path);
-
     const aiScene* scene = importer.ReadFile(absolutePath.string(), aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
     
     if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
         std::cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << std::endl;
         return;
     }
+
+    std::filesystem::path parentPath = absolutePath.parent_path(); 
     
-    directory = absolutePath.parent_path();
+    auto it = std::find(parentPath.begin(), parentPath.end(), "resources");
+    if(it == parentPath.end()) 
+        throw std::runtime_error("Model is not in a resources folder");
+
+    it++;
+    
+    for(; it != parentPath.end(); it++) {
+        directory /= *it;
+    }
 
     meshes.resize(scene->mNumMeshes);
     processNode(scene->mRootNode, scene);
@@ -114,7 +122,8 @@ std::vector<std::weak_ptr<Texture>> Model::loadMaterialTextures(aiMaterial *mat,
     for(unsigned int i = 0; i < mat->GetTextureCount(type); i++) {
         aiString texturePath;
         mat->GetTexture(type, i, &texturePath);
-        std::filesystem::path textureAbsolutePath = directory / texturePath.C_Str();
+        std::filesystem::path textureRelativePath = directory / texturePath.C_Str();
+        std::filesystem::path textureAbsolutePath = absolutePath.parent_path() / texturePath.C_Str();
         bool alreadyLoaded = false;
         for(unsigned int j = 0; j < texturesLoaded.size(); j++) {
             if(std::strcmp(texturesLoaded[j]->path.c_str(), textureAbsolutePath.string().c_str()) == 0) {
@@ -125,7 +134,7 @@ std::vector<std::weak_ptr<Texture>> Model::loadMaterialTextures(aiMaterial *mat,
         }
         if(!alreadyLoaded) {
             std::shared_ptr<Texture> texture;
-            ResourceManager::Instance().NewTextureAssetFromPath(textureAbsolutePath.string(), internalType, texturesLoaded.size(), false, texture);
+            ResourceManager::Instance().NewTextureAsset(textureRelativePath.string(), internalType, texturesLoaded.size(), false, texture);
             textures.push_back(texture);
             texturesLoaded.push_back(texture);
         }

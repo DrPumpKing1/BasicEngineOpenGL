@@ -63,17 +63,6 @@ void ResourceManager::NewTextureAsset(const std::string &relativePath, TextureTy
     }
 }
 
-void ResourceManager::NewTextureAssetFromPath(const std::string &path, TextureType type, GLenum unit, bool transparency, std::shared_ptr<Texture>& shareTo) {
-    std::filesystem::path absolutePath(path);
-    if(absolutePath.empty()) {
-        std::cerr << "Asset not found at path " << path << std::endl;
-        return;
-    }
-    TextureAsset asset(absolutePath.string(), type, unit, transparency);
-    textures.push_back(asset);
-    asset.Share(shareTo);
-}
-
 void ResourceManager::NewModelAsset(const std::string &relativePath, std::shared_ptr<Model>& shareTo) {
     std::filesystem::path path = GetAssetPath(relativePath);
     if(path.empty()) {
@@ -85,6 +74,15 @@ void ResourceManager::NewModelAsset(const std::string &relativePath, std::shared
     asset.Share(shareTo);
     if(std::find(relativePaths.begin(), relativePaths.end(), relativePath) == relativePaths.end()) {
         relativePaths.push_back(relativePath);
+    }
+
+    std::filesystem::path relativeModelPath(relativePath);
+    std::filesystem::path materialPath = std::filesystem::path(relativePath).parent_path() / (path.stem().string() + ".mtl");
+    if (pathsTable.find(materialPath) != pathsTable.end())
+    {
+        if (std::find(relativePaths.begin(), relativePaths.end(), materialPath.string()) == relativePaths.end()) {
+            relativePaths.push_back(materialPath.string());
+        }
     }
 }
 
@@ -106,5 +104,6 @@ void ResourceManager::Release() {
     relativePaths.clear();
     shaders.clear();
     textures.clear();
+    models.clear();
     pathsTable.clear();
 }

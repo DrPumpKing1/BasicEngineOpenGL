@@ -27,10 +27,7 @@ public:
     std::filesystem::path GetAssetPath(const std::filesystem::path &relativePath);
 
     void NewShaderAsset(const std::string &relativePath, ShaderType type, std::shared_ptr<Shader> &shareTo);
-
     void NewTextureAsset(const std::string &relativePath, TextureType type, GLenum unit, bool transparency, std::shared_ptr<Texture> &shareTo);
-    void NewTextureAssetFromPath(const std::string &path, TextureType type, GLenum unit, bool transparency, std::shared_ptr<Texture> &shareTo);
-
     void NewModelAsset(const std::string &relativePath, std::shared_ptr<Model> &shareTo);
 private:
     ResourceManager();
