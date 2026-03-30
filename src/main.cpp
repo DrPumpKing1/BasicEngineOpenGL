@@ -31,6 +31,15 @@ bool cursorInGame {false};
 
 glm::vec3 lightPosition(0.0f, 2.5f, 0.0f);
 
+std::vector<std::string> faces {
+    "right.png",
+    "left.png",
+    "top.png",
+    "bottom.png",
+    "front.png",
+    "back.png",
+};
+
 int main( void)
 {
     if(!glfwInit()) {
@@ -39,7 +48,7 @@ int main( void)
     }
 
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 #ifdef __APPLE__
@@ -67,6 +76,24 @@ int main( void)
     std::shared_ptr<Model> backpack;
     ResourceManager::Instance().NewModelAsset("objects/backpack/backpack.obj", backpack);
 
+    Cube *cube = new Cube();
+
+    std::shared_ptr<Cubemap> skybox;
+    ResourceManager::Instance().NewCubemapAsset("cubemaps/Galaxy", faces, GL_TEXTURE0, skybox);
+
+    std::shared_ptr<Shader> skyboxVertexShader, skyboxFragmentShader;
+
+    ResourceManager::Instance().NewShaderAsset("shaders/skybox.vs", ShaderType::VERTEX, skyboxVertexShader);
+    ResourceManager::Instance().NewShaderAsset("shaders/skybox.fs", ShaderType::FRAGMENT, skyboxFragmentShader);
+
+    ShaderProgram *skyboxShaderProgram = new ShaderProgram();
+    skyboxShaderProgram->AttachShader(skyboxVertexShader);
+    skyboxShaderProgram->AttachShader(skyboxFragmentShader);
+    skyboxShaderProgram->Compile();
+
+    skyboxVertexShader.reset();
+    skyboxFragmentShader.reset();
+
     std::shared_ptr<Shader> vertexShader, fragmentShader;
 
     ResourceManager::Instance().NewShaderAsset("shaders/plane3Dtangent.vs", ShaderType::VERTEX, vertexShader);
@@ -81,8 +108,12 @@ int main( void)
     fragmentShader.reset();
 
     UniformBlock *cameraUniformBlock = new UniformBlock("Camera", 0, sizeof(CameraData));
+    cameraUniformBlock->SetShaderUniformBlock(*skyboxShaderProgram);
     cameraUniformBlock->SetShaderUniformBlock(*shaderProgram);
     struct CameraData cameraData;
+
+    skyboxShaderProgram->Bind();
+    skybox->SetShaderUniform(*skyboxShaderProgram, "skyboxTexture");
 
     shaderProgram->Bind();
     shaderProgram->SetVec3("lightPosition", lightPosition);
@@ -94,6 +125,8 @@ int main( void)
     glEnable(GL_DEPTH_TEST);
 
     glEnable(GL_FRAMEBUFFER_SRGB);
+
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
@@ -121,10 +154,22 @@ int main( void)
 
         backpack->Draw(*shaderProgram);
 
+        glDepthMask(GL_FALSE);
+        glDepthFunc(GL_LEQUAL);
+        skyboxShaderProgram->Bind();
+        skybox->Bind();
+        cube->Draw();
+        skybox->Unbind();
+        glDepthMask(GL_TRUE);
+        glDepthFunc(GL_LESS);
+
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
+    delete cube;
+
+    delete skyboxShaderProgram;
     delete shaderProgram;
 
     delete cameraUniformBlock;

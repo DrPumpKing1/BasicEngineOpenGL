@@ -2,13 +2,16 @@
 
 #include "../Shader/Shader.h"
 #include "../Texture/Texture.h"
+#include "../Cubemap/Cubemap.h"
 #include "../Model/Model.h"
 
 #include <boost/uuid/uuid.hpp>
+
+#include <vector>
 #include <memory>
 #include <filesystem>
 
-class ShaderAsset 
+class ShaderAsset
 {
 private:
     std::shared_ptr<Shader> reference;
@@ -55,6 +58,23 @@ public:
     }
 
     void Share(std::shared_ptr<Model> &shareTo) {
+        shareTo = reference;
+    }
+};
+
+class CubemapAsset
+{
+private:
+    std::shared_ptr<Cubemap> reference;
+    std::filesystem::path path;
+public:
+
+    CubemapAsset(std::vector<std::filesystem::path> texturePaths, GLenum unit);
+    ~CubemapAsset() {
+        reference.reset();
+    }
+
+    void Share(std::shared_ptr<Cubemap> &shareTo) {
         shareTo = reference;
     }
 };

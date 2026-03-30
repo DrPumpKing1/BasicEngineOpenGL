@@ -71,6 +71,8 @@ set(ENGINE_PRIMITIVES
     "src/Engine/Sphere/Sphere.h"
     "src/Engine/Sphere/SphereTangent.cpp"
     "src/Engine/Sphere/SphereTangent.h"
+    "src/Engine/Cube/Cube.cpp"
+    "src/Engine/Cube/Cube.h"
     "src/Engine/Vertex/Vertex.h"
 )
 
@@ -100,6 +102,12 @@ set(ENGINE_TEXTURE
     "src/Engine/Texture/Texture.cpp"
     "src/Engine/Texture/Texture.h"
 )
+
+set(ENGINE_CUBEMAP
+    "src/Engine/Cubemap/Cubemap.cpp"
+    "src/Engine/Cubemap/Cubemap.h"
+)
+
 set(ENGINE_UNIFORMS
     "src/Engine/UniformBlock/UniformBlock.cpp"
     "src/Engine/UniformBlock/UniformBlock.h"
@@ -172,6 +180,7 @@ set(ENGINE_SOURCE
     ${ENGINE_RESOURCES}
     ${ENGINE_SHADERS}
     ${ENGINE_TEXTURE}
+    ${ENGINE_CUBEMAP}
     ${ENGINE_MODEL}
     ${ENGINE_CAMERA}
     ${ENGINE_PRIMITIVES}

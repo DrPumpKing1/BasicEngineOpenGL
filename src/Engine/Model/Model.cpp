@@ -1,23 +1,28 @@
 #include "Model.h"
 #include "../ResourceManager/ResourceManager.h"
 
-Model::~Model() {
+Model::~Model()
+{
     meshes.clear();
     texturesLoaded.clear();
 }
 
-void Model::Draw(ShaderProgram &shaderProgram) {
-    for(unsigned int i = 0; i < meshes.size(); i++) {
+void Model::Draw(ShaderProgram &shaderProgram) 
+{
+    for(unsigned int i = 0; i < meshes.size(); i++) 
+    {
         meshes[i].Draw(shaderProgram);
     }
 }
 
-void Model::loadModel(std::string const& path) {
+void Model::loadModel(std::string const& path) 
+{
     Assimp::Importer importer;
 
     const aiScene* scene = importer.ReadFile(absolutePath.string(), aiProcess_Triangulate | aiProcess_GenSmoothNormals | aiProcess_FlipUVs | aiProcess_CalcTangentSpace);
     
-    if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
+    if(!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+    {
         std::cout << "ERROR::ASSIMP:: " << importer.GetErrorString() << std::endl;
         return;
     }
@@ -30,7 +35,8 @@ void Model::loadModel(std::string const& path) {
 
     it++;
     
-    for(; it != parentPath.end(); it++) {
+    for(; it != parentPath.end(); it++) 
+    {
         directory /= *it;
     }
 
@@ -38,18 +44,22 @@ void Model::loadModel(std::string const& path) {
     processNode(scene->mRootNode, scene);
 }
 
-void Model::processNode(aiNode *node, const aiScene *scene) {
-    for(unsigned int i = 0; i < node->mNumMeshes; i++) {
+void Model::processNode(aiNode *node, const aiScene *scene) 
+{
+    for(unsigned int i = 0; i < node->mNumMeshes; i++) 
+    {
         aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
         processMesh(mesh, scene);
     }
 
-    for(unsigned int i = 0; i < node->mNumChildren; i++) {
+    for(unsigned int i = 0; i < node->mNumChildren; i++) 
+    {
         processNode(node->mChildren[i], scene);
     }
 }
 
-void Model::processMesh(aiMesh *mesh, const aiScene *scene) {
+void Model::processMesh(aiMesh *mesh, const aiScene *scene) 
+{
     std::vector<Vertex3DTangent> vertices;
     std::vector<unsigned int> indices;
     std::vector<std::weak_ptr<Texture>> textures;
@@ -63,14 +73,16 @@ void Model::processMesh(aiMesh *mesh, const aiScene *scene) {
         vector.z = mesh->mVertices[i].z;
         vertex.position = vector;
 
-        if(mesh->HasNormals()) {
+        if(mesh->HasNormals()) 
+        {
             vector.x = mesh->mNormals[i].x;
             vector.y = mesh->mNormals[i].y;
             vector.z = mesh->mNormals[i].z;
             vertex.normal = vector;
         }
 
-        if(mesh->mTextureCoords[0]) {
+        if(mesh->mTextureCoords[0]) 
+        {
             glm::vec2 vec;
 
             vec.x = mesh->mTextureCoords[0][i].x;
@@ -86,14 +98,16 @@ void Model::processMesh(aiMesh *mesh, const aiScene *scene) {
             vector.y = mesh->mBitangents[i].y;
             vector.z = mesh->mBitangents[i].z;
             vertex.bitangent = vector;
-        } else {
+        } else 
+        {
             vertex.texCoords = glm::vec2(0.0f, 0.0f);
         }
 
         vertices.push_back(vertex);
     }
 
-    for(unsigned int i = 0; i < mesh->mNumFaces; i++) {
+    for(unsigned int i = 0; i < mesh->mNumFaces; i++) 
+    {
         aiFace face = mesh->mFaces[i];
         for(unsigned int j = 0; j < face.mNumIndices; j++) {
             indices.push_back(face.mIndices[j]);
@@ -117,24 +131,29 @@ void Model::processMesh(aiMesh *mesh, const aiScene *scene) {
     meshes[meshCounter++].Construct(vertices, indices, textures);
 }
 
-std::vector<std::weak_ptr<Texture>> Model::loadMaterialTextures(aiMaterial *mat, aiTextureType type, TextureType internalType) {
+std::vector<std::weak_ptr<Texture>> Model::loadMaterialTextures(aiMaterial *mat, aiTextureType type, TextureType internalType) 
+{
     std::vector<std::weak_ptr<Texture>> textures;
-    for(unsigned int i = 0; i < mat->GetTextureCount(type); i++) {
+    for(unsigned int i = 0; i < mat->GetTextureCount(type); i++) 
+    {
         aiString texturePath;
         mat->GetTexture(type, i, &texturePath);
         std::filesystem::path textureRelativePath = directory / texturePath.C_Str();
         std::filesystem::path textureAbsolutePath = absolutePath.parent_path() / texturePath.C_Str();
         bool alreadyLoaded = false;
-        for(unsigned int j = 0; j < texturesLoaded.size(); j++) {
-            if(std::strcmp(texturesLoaded[j]->path.c_str(), textureAbsolutePath.string().c_str()) == 0) {
+        for(unsigned int j = 0; j < texturesLoaded.size(); j++) 
+        {
+            if(std::strcmp(texturesLoaded[j]->path.c_str(), textureAbsolutePath.string().c_str()) == 0) 
+            {
                 textures.push_back(texturesLoaded[j]);
                 alreadyLoaded = true;
                 break;
             }
         }
-        if(!alreadyLoaded) {
+        if(!alreadyLoaded) 
+        {
             std::shared_ptr<Texture> texture;
-            ResourceManager::Instance().NewTextureAsset(textureRelativePath.string(), internalType, texturesLoaded.size(), false, texture);
+            ResourceManager::Instance().NewTextureAsset(textureRelativePath.string(), internalType, GL_TEXTURE0 + texturesLoaded.size(), false, texture);
             textures.push_back(texture);
             texturesLoaded.push_back(texture);
         }

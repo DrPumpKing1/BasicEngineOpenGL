@@ -52,8 +52,10 @@ void Mesh::Draw(ShaderProgram& shaderProgram)
     unsigned int heightNr = 1;
 
     shaderProgram.Bind();
-    for (size_t i = 0; i < textures.size(); ++i) {
-        if(auto texture = textures[i].lock()) {
+    for (size_t i = 0; i < textures.size(); ++i) 
+    {
+        if(auto texture = textures[i].lock()) 
+        {
             texture->Bind();
             TextureType type = texture->GetType();
             unsigned int textureNr;
@@ -81,8 +83,10 @@ void Mesh::Draw(ShaderProgram& shaderProgram)
     glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
 
-    for (size_t i = 0; i < textures.size(); ++i) {
-        if(auto texture = textures[i].lock()) {
+    for (size_t i = 0; i < textures.size(); ++i) 
+    {
+        if(auto texture = textures[i].lock()) 
+        {
             texture->Unbind();
         }
     }

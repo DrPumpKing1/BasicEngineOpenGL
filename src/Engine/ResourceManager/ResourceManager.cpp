@@ -35,7 +35,8 @@ std::filesystem::path ResourceManager::GetAssetPath(const std::filesystem::path 
     }
 }
 
-void ResourceManager::NewShaderAsset(const std::string &relativePath, ShaderType type, std::shared_ptr<Shader>& shareTo) {
+void ResourceManager::NewShaderAsset(const std::string &relativePath, ShaderType type, std::shared_ptr<Shader>& shareTo)
+{
     std::filesystem::path path = GetAssetPath(relativePath);
     if(path.empty()) {
         std::cerr << "Asset not found at path " << relativePath << std::endl;
@@ -49,7 +50,8 @@ void ResourceManager::NewShaderAsset(const std::string &relativePath, ShaderType
     }
 }
 
-void ResourceManager::NewTextureAsset(const std::string &relativePath, TextureType type, GLenum unit, bool transparency, std::shared_ptr<Texture>& shareTo) {
+void ResourceManager::NewTextureAsset(const std::string &relativePath, TextureType type, GLenum unit, bool transparency, std::shared_ptr<Texture>& shareTo) 
+{
     std::filesystem::path path = GetAssetPath(relativePath);
     if(path.empty()) {
         std::cerr << "Asset not found at path " << relativePath << std::endl;
@@ -63,7 +65,44 @@ void ResourceManager::NewTextureAsset(const std::string &relativePath, TextureTy
     }
 }
 
-void ResourceManager::NewModelAsset(const std::string &relativePath, std::shared_ptr<Model>& shareTo) {
+void ResourceManager::NewCubemapAsset(const std::string &relativeFolderPath, std::vector<std::string> facesFilenames, GLenum unit, std::shared_ptr<Cubemap>& shareTo) 
+{
+    if(facesFilenames.size() < 6) {
+        std::cerr << "Not enough faces to make a cubemap texture" << std::endl;
+        return;
+    }
+
+    std::vector<std::filesystem::path> texturesPaths;
+    std::vector<std::filesystem::path> relativeTexturesPaths;
+    for(unsigned int i = 0; i < 6; i++) 
+    {
+        std::filesystem::path relativePath(relativeFolderPath);
+        relativePath /= facesFilenames[i];
+
+        std::filesystem::path path = GetAssetPath(relativePath);
+        if(path.empty()) {
+            std::cerr << "Asset not found at path " << relativePath << std::endl;
+            return;
+        }
+
+        texturesPaths.push_back(path);
+        relativeTexturesPaths.push_back(relativePath);
+    }
+
+    CubemapAsset asset(texturesPaths, unit);
+    cubemaps.push_back(asset);
+    asset.Share(shareTo);
+
+    for(const auto& path : relativeTexturesPaths) {
+        if(std::find(relativePaths.begin(), relativePaths.end(), path.string()) == relativePaths.end()) 
+        {
+            relativePaths.push_back(path.string());
+        }
+    }
+}
+
+void ResourceManager::NewModelAsset(const std::string &relativePath, std::shared_ptr<Model>& shareTo)
+{
     std::filesystem::path path = GetAssetPath(relativePath);
     if(path.empty()) {
         std::cerr << "Asset not found at path " << relativePath << std::endl;
@@ -86,15 +125,18 @@ void ResourceManager::NewModelAsset(const std::string &relativePath, std::shared
     }
 }
 
-void ResourceManager::Release() {
+void ResourceManager::Release() 
+{
 #ifdef DEBUG
     std::filesystem::path usageRegistryFullPath = std::filesystem::path(project_source_directory) / USAGE_REGISTRY_RELATIVE_PATH;
     std::ostringstream writeBuffer;
-    for(const auto& relativePath : relativePaths) {
+    for(const auto& relativePath : relativePaths) 
+    {
         writeBuffer << relativePath << "\n";
     }
     std::ofstream writeFile(usageRegistryFullPath);
-    if(!writeFile.is_open()) {
+    if(!writeFile.is_open()) 
+    {
         std::cerr << "Failed to open usage registry file for writing: " << usageRegistryFullPath << std::endl;
         return;
     }
@@ -104,6 +146,7 @@ void ResourceManager::Release() {
     relativePaths.clear();
     shaders.clear();
     textures.clear();
+    cubemaps.clear();
     models.clear();
     pathsTable.clear();
 }
